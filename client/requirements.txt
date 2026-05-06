@@ -1,3 +1,5 @@
 streamlit
 mcp
 google-genai
+openai
+python-dotenv

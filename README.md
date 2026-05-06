@@ -1,60 +1,47 @@
 # Context-Aware Earnings Analyzer
 
-This project is a microservice-based application that allows users to ask questions about stocks and earnings reports using a chat interface powered by Google's Gemini LLM. It leverages the Model Context Protocol (MCP) to provide the LLM with live financial data through custom tools.
+This project is a microservice-based application that allows users to perform deep-dive financial analysis on stocks using a chat interface powered by **DeepSeek v4-flash**. It leverages the **Model Context Protocol (MCP)** to provide the LLM with live financial data, sentiment analysis, and historical trends through custom backend tools.
+
+## Key Features
+
+-   **Deep Financial Insights**: Access real-time price data, valuation metrics (P/E), and comprehensive financial statements.
+-   **Market Sentiment**: Automated sentiment analysis of the latest news headlines using VADER.
+-   **Interactive Visuals**: Rich rendering of price trend charts and color-coded sentiment cards.
+-   **Company Context**: Integrated business summaries and sector mapping.
+-   **Two-Phase Analysis**: A robust execution flow that first gathers all necessary data via tool calls and then generates a structured final report.
 
 ## Architecture
 
 The project is divided into two distinct components:
 
-1.  **`mcp_server` (Backend Model Context Protocol Server)**
-    *   **Role**: Exposes tools that can be consumed by AI models. Currently, it provides a tool to fetch real-time stock data.
-    *   **Tech Stack**: FastAPI, FastMCP, `yfinance`, Uvicorn.
-    *   **Key Files**:
-        *   `main.py`: Sets up the FastAPI application and the FastMCP server, defining a `/sse` endpoint for Server-Sent Events communication and exposing the `fetch_stock_data` tool.
-        *   `tools/financial.py`: Contains the core logic using the `yfinance` library to retrieve stock information (current price, 52-week high, trailing P/E, forward P/E).
+1.  **`mcp_server` (Backend Tool Provider)**
+    *   **Role**: Exposes financial tools (yfinance, sentiment) via the Model Context Protocol.
+    *   **Tech Stack**: FastAPI, FastMCP, `yfinance`, NLTK.
+    *   **Communication**: Server-Sent Events (SSE).
 
-2.  **`client` (Frontend Streamlit Application)**
-    *   **Role**: Provides the user interface (a chat application) and orchestrates the interaction between the user, the Gemini LLM, and the MCP server.
-    *   **Tech Stack**: Streamlit, Google GenAI SDK (`google-genai`), MCP Python Client SDK.
-    *   **Key Files**:
-        *   `app.py`: Sets up the Streamlit chat interface. It establishes a connection to the backend MCP server via SSE, discovers available tools (like `fetch_stock_data`), maps them to Gemini's tool schema, and handles the chat loop. When the Gemini model decides to call a tool, the client executes the request against the MCP server and returns the results to the model to formulate a final response.
+2.  **`client` (Frontend Orchestrator)**
+    *   **Role**: Manages the user interface and orchestrates the interaction between the user, DeepSeek LLM, and the MCP server.
+    *   **Tech Stack**: Streamlit, OpenAI SDK (for DeepSeek), MCP Client SDK.
 
 ## Prerequisites
 
 *   Python 3.10+
-*   A Google Gemini API Key
+*   A **DeepSeek API Key**
 
 ## How to Run the Application
 
-Since this is a dual-microservice architecture, you need to run the server and the client in separate terminal windows.
-
 ### 1. Start the MCP Server
 
-Open a terminal and navigate to the `mcp_server` directory:
+Navigate to the `mcp_server` directory:
 
 ```bash
 cd mcp_server
-```
-
-Create and activate a virtual environment (recommended):
-
-```bash
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
-
-Install the required dependencies:
-
-```bash
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-Run the server:
-
-```bash
 python main.py
 ```
-*The server will start and listen on `http://localhost:8000` (the SSE endpoint is at `/sse`).*
+*Server starts on `http://localhost:8000`.*
 
 ### 2. Start the Streamlit Client
 
@@ -62,41 +49,28 @@ Open a **new** terminal window and navigate to the `client` directory:
 
 ```bash
 cd client
-```
-
-Create and activate a virtual environment (recommended):
-
-```bash
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
-
-Install the required dependencies:
-
-```bash
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Set your Gemini API Key as an environment variable (optional, the UI will prompt you if it's not set):
-
+Set your DeepSeek API Key:
 ```bash
-export GEMINI_API_KEY="your_api_key_here"
+export DEEPSEEK_API_KEY="your_api_key_here"
 ```
 
 Run the Streamlit application:
-
 ```bash
 streamlit run app.py
 ```
 
-*Your default web browser should open automatically to `http://localhost:8501`, showing the Earnings Analyzer Chat interface.*
-
 ## How it works
 
-1.  The user types a query like "What is the current price and P/E ratio for AAPL?" into the Streamlit chat.
-2.  The Streamlit app sends this query to the Gemini model, along with the descriptions of the tools available on the MCP server (discovered during startup).
-3.  Gemini recognizes that it needs live data to answer the query and responds with a "tool call" for `fetch_stock_data(ticker="AAPL")`.
-4.  The Streamlit app intercepts this tool call, executes it against the local MCP server via the SSE connection.
-5.  The MCP server runs the `yfinance` logic, gets the data, and returns it to the Streamlit app.
-6.  The Streamlit app feeds the retrieved JSON data back into Gemini.
-7.  Gemini generates a natural language response based on the live data, which is then displayed to the user.
+1.  **Discovery**: On startup, the Streamlit client connects to the MCP server and discovers available tools (e.g., `fetch_stock_data`, `fetch_news_sentiment`).
+2.  **User Query**: The user asks a question like "Is NVDA a good buy right now?"
+3.  **Data Gathering (Phase 1)**: DeepSeek identifies the tools needed and triggers multiple calls to the MCP server to fetch historical prices, financials, and news sentiment.
+4.  **Rich Rendering**: As data arrives, the UI dynamically renders charts and sentiment cards.
+5.  **Final Analysis (Phase 2)**: DeepSeek processes all retrieved data and provides a structured, data-driven investment summary.
+
+---
+*Developed with the Model Context Protocol.*

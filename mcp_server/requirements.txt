@@ -5,3 +5,4 @@ faiss-cpu
 langchain
 mcp
 google-genai
+nltk
