@@ -82,7 +82,8 @@ def map_mcp_to_gemini(mcp_tools):
     return gemini_tools
 
 async def process_chat(prompt_text):
-    async with sse_client("http://localhost:8000/sse") as (read_stream, write_stream):
+    mcp_url = os.environ.get("MCP_SERVER_URL", "http://localhost:8000/sse")
+    async with sse_client(mcp_url) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as mcp_session:
             await mcp_session.initialize()
             mcp_tools = await mcp_session.list_tools()
