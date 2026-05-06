@@ -20,6 +20,10 @@ def fetch_stock_data(ticker: str) -> str:
     data = get_stock_data(ticker)
     return json.dumps(data)
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 # Expose an SSE endpoint (/sse) and a message endpoint (/messages).
 app.mount("/", server.sse_app())
 
