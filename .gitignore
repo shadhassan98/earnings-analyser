@@ -1,0 +1,19 @@
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vector Databases and large datasets
+**/data/vector_db/
+*.pdf
+*.csv
+*.sqlite
+
+# OS generated files
+.DS_Store

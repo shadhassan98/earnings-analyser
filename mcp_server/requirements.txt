@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+yfinance
+faiss-cpu
+langchain
+mcp
+google-genai
