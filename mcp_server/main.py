@@ -8,7 +8,7 @@ from tools.financial import get_stock_data
 app = FastAPI(title="Context-Aware Earnings Analyzer - MCP Server")
 
 # Initialize an MCP Server instance
-server = FastMCP("mcp-server")
+server = FastMCP("mcp-server", host="0.0.0.0")
 
 @server.tool()
 def fetch_stock_data(ticker: str) -> str:
